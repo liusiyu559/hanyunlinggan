@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>汉韵灵感 - 对外汉语教学助手</title>
+    <!-- Tailwind CDN is kept for simplicity to avoid needing full CSS setup in file structure, 
+         though package.json includes tailwindcss if you wish to migrate to a css file later. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,17 +54,20 @@
   <script type="importmap">
 {
   "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "pptxgenjs": "https://jspm.dev/pptxgenjs",
-    "pinyin-pro": "https://esm.sh/pinyin-pro@3.18.3"
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "pptxgenjs": "https://aistudiocdn.com/pptxgenjs@^4.0.1",
+    "pinyin-pro": "https://aistudiocdn.com/pinyin-pro@^3.27.0"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
