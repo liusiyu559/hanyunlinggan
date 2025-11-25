@@ -2,7 +2,20 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { UserInput, GeneratedActivity, Mode, PPTSchema, PPTConfig, PPTOutlineItem, ExerciseConfig, ExerciseSchema } from "../types";
 
-const genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy initialization of the Gemini client
+let genAIInstance: GoogleGenAI | null = null;
+
+const getGenAI = (): GoogleGenAI => {
+  if (!genAIInstance) {
+    // @ts-ignore
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("API Key is missing. Please check your configuration.");
+    }
+    genAIInstance = new GoogleGenAI({ apiKey });
+  }
+  return genAIInstance;
+};
 
 // Schema for structured JSON output
 const activitySchema: Schema = {
@@ -28,6 +41,7 @@ const activitySchema: Schema = {
 
 export const generateActivityPlan = async (input: UserInput, mode: Mode): Promise<GeneratedActivity> => {
   const model = "gemini-2.5-flash";
+  const ai = getGenAI();
   
   let prompt = "";
   
@@ -60,7 +74,7 @@ export const generateActivityPlan = async (input: UserInput, mode: Mode): Promis
   }
 
   try {
-    const response = await genAI.models.generateContent({
+    const response = await ai.models.generateContent({
       model: model,
       contents: prompt,
       config: {
@@ -84,6 +98,7 @@ export const generateActivityPlan = async (input: UserInput, mode: Mode): Promis
 export const generateActivityImage = async (imageDescription: string): Promise<string | undefined> => {
   // Using gemini-2.5-flash-image for standard image generation
   const model = "gemini-2.5-flash-image";
+  const ai = getGenAI();
   
   const enhancedPrompt = `
     A photorealistic, high-quality image of a Chinese language classroom setting.
@@ -92,7 +107,7 @@ export const generateActivityImage = async (imageDescription: string): Promise<s
   `;
 
   try {
-    const response = await genAI.models.generateContent({
+    const response = await ai.models.generateContent({
       model: model,
       contents: enhancedPrompt,
       config: {
@@ -137,6 +152,7 @@ const pptOutlineSchema: Schema = {
 
 export const generatePPTOutline = async (activity: GeneratedActivity, requirements: string = ""): Promise<PPTOutlineItem[]> => {
   const model = "gemini-2.5-flash";
+  const ai = getGenAI();
 
   const prompt = `
     You are a professional instructional designer. 
@@ -153,7 +169,7 @@ export const generatePPTOutline = async (activity: GeneratedActivity, requiremen
   `;
 
   try {
-    const response = await genAI.models.generateContent({
+    const response = await ai.models.generateContent({
       model: model,
       contents: prompt,
       config: {
@@ -200,6 +216,7 @@ const pptSchema: Schema = {
 
 export const generatePPTSchema = async (activity: GeneratedActivity, pptConfig: PPTConfig): Promise<PPTSchema> => {
   const model = "gemini-2.5-flash";
+  const ai = getGenAI();
 
   // Construct a description of the outline
   const outlineDesc = pptConfig.outline.map((item, idx) => `Slide ${idx+1}: ${item.title} (${item.note})`).join('\n');
@@ -222,7 +239,7 @@ export const generatePPTSchema = async (activity: GeneratedActivity, pptConfig: 
   `;
 
   try {
-    const response = await genAI.models.generateContent({
+    const response = await ai.models.generateContent({
       model: model,
       contents: prompt,
       config: {
@@ -267,6 +284,7 @@ const exerciseSchema: Schema = {
 
 export const generateExercises = async (activity: GeneratedActivity, config: ExerciseConfig): Promise<ExerciseSchema> => {
   const model = "gemini-2.5-flash";
+  const ai = getGenAI();
 
   const requestedTypes = config.types.join(", ");
   
@@ -291,7 +309,7 @@ export const generateExercises = async (activity: GeneratedActivity, config: Exe
   `;
 
   try {
-    const response = await genAI.models.generateContent({
+    const response = await ai.models.generateContent({
       model: model,
       contents: prompt,
       config: {

@@ -10,6 +10,7 @@ import { generateActivityPlan, generateActivityImage, generatePPTSchema, generat
 import { createAndDownloadPPT } from './services/pptExportService';
 import { createAndDownloadDoc } from './services/docExportService';
 import { CloudPattern, PlumFlower, LibraryIcon } from './components/Icons';
+import { getApiKey } from './utils/envUtils';
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('CREATOR');
@@ -34,6 +35,15 @@ const App: React.FC = () => {
   const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
   const [activeActivityForEx, setActiveActivityForEx] = useState<GeneratedActivity | null>(null);
   const [generatingEx, setGeneratingEx] = useState(false);
+
+  // Initialization Check
+  useEffect(() => {
+    const key = getApiKey();
+    if (!key) {
+      console.warn("API Key is missing! Check your environment configuration.");
+      setError("API Key not found. Please ensure it is configured in Vercel.");
+    }
+  }, []);
 
   // Load from LocalStorage on Mount
   useEffect(() => {
@@ -100,9 +110,9 @@ const App: React.FC = () => {
         }
         setLoadingImage(false);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("AI 连接失败，请检查网络或稍后重试。 (Failed to connect to AI)");
+      setError("AI 连接失败，请检查网络或配置 (Failed to connect to AI): " + (err.message || String(err)));
       setLoading(false);
       setLoadingImage(false);
     }
