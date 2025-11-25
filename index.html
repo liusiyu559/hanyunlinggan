@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>汉韵灵感 - 对外汉语教学助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Noto Serif SC', serif;
+        background-color: #f0e7d8; /* Parchment base */
+      }
+      .font-calligraphy {
+        font-family: 'Ma Shan Zheng', cursive;
+      }
+      /* Custom Scrollbar for that ancient feel */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #e4dccc;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #8b7d6b;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #5c5042;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'ink-black': '#2c2c2c',
+              'antique-paper': '#f0e7d8',
+              'antique-paper-dark': '#e3d6c0',
+              'cinnabar': '#b93a32',
+              'jade-green': '#6c8c74',
+              'bamboo-green': '#4a6b46',
+              'earth-brown': '#8b5a2b',
+              'wood-border': '#5e4b35',
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "pptxgenjs": "https://jspm.dev/pptxgenjs",
+    "pinyin-pro": "https://esm.sh/pinyin-pro@3.18.3"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
