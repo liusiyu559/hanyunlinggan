@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserInput, GeneratedActivity, Mode, PPTSchema, PPTConfig, PPTOutlineItem, ExerciseConfig, ExerciseSchema } from "../types";
+import { UserInput, GeneratedActivity, Mode, PPTSchema, PPTConfig, PPTOutlineItem, ExerciseConfig, ExerciseSchema, ImageBatchConfig, ImageGenerationItem } from "../types";
 
 // Lazy initialization of the Gemini client
 let genAIInstance: GoogleGenAI | null = null;
@@ -23,6 +23,33 @@ const activitySchema: Schema = {
   properties: {
     title: { type: Type.STRING, description: "A creative, poetic Chinese title for the activity." },
     rationale: { type: Type.STRING, description: "Brief pedagogical rationale." },
+    
+    // New Fields
+    teachingGoals: { 
+      type: Type.ARRAY, 
+      items: { type: Type.STRING }, 
+      description: "List of teaching objectives (教学目标)." 
+    },
+    keyPoints: { 
+      type: Type.ARRAY, 
+      items: { type: Type.STRING }, 
+      description: "Analysis of key and difficult points (重难点分析)." 
+    },
+    grammarAnalysis: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          point: { type: Type.STRING, description: "Grammar point name (e.g. '把'字句)" },
+          structure: { type: Type.STRING, description: "Structure/Format (e.g. S + 把 + O + V + result)" },
+          usage: { type: Type.STRING, description: "Explanation of usage scenarios" },
+          examples: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Example sentences" }
+        },
+        required: ["point", "structure", "usage", "examples"]
+      },
+      description: "Detailed analysis of grammar points relevant to the activity."
+    },
+    
     props: {
       type: Type.ARRAY,
       items: { type: Type.STRING },
@@ -33,17 +60,19 @@ const activitySchema: Schema = {
       items: { type: Type.STRING },
       description: "Step-by-step instructions for the teacher."
     },
+    
+    // Updated Simulation Fields
+    simulationContext: { type: Type.STRING, description: "A content synopsis clarifying the purpose of the dialogue." },
     simulation: { type: Type.STRING, description: "A dialogue script or scenario simulation of the class." },
+    
     imagePromptDescription: { type: Type.STRING, description: "A detailed visual description of the simulation scene for image generation." }
   },
-  required: ["title", "rationale", "props", "steps", "simulation", "imagePromptDescription"],
+  required: ["title", "rationale", "teachingGoals", "keyPoints", "grammarAnalysis", "props", "steps", "simulationContext", "simulation", "imagePromptDescription"],
 };
 
 export const generateActivityPlan = async (input: UserInput, mode: Mode): Promise<GeneratedActivity> => {
   const model = "gemini-2.5-flash";
   const ai = getGenAI();
-  
-  let prompt = "";
   
   const baseContext = `
     You are an expert Senior Teaching Chinese as a Foreign Language (TCFL) specialist. 
@@ -56,22 +85,36 @@ export const generateActivityPlan = async (input: UserInput, mode: Mode): Promis
     Specific Requirements: ${input.requirements || "None"}
   `;
 
+  let specificInstruction = "";
   if (mode === Mode.RECORD) {
-    prompt = `
-      ${baseContext}
+    specificInstruction = `
       The user has a rough idea: "${input.activityIdea}".
-      Please expand this idea into a fully professional teaching activity plan. 
-      Refine the steps, suggest specific props, and write a realistic classroom simulation dialogue.
-      Ensure the tone is encouraging and culturally rich.
+      Expand this into a fully professional teaching activity plan.
     `;
   } else {
-    prompt = `
-      ${baseContext}
-      Please creatively generate a brand new, highly effective teaching activity idea suitable for this specific group.
-      Design specific props, detailed teaching steps, and a realistic classroom simulation dialogue.
-      The activity should be interactive and culturally immersive.
+    specificInstruction = `
+      Creatively generate a brand new, highly effective teaching activity idea suitable for this specific group.
     `;
   }
+
+  const prompt = `
+    ${baseContext}
+    ${specificInstruction}
+    
+    REQUIREMENTS FOR OUTPUT:
+    1. **Teaching Goals**: Clear, measurable objectives.
+    2. **Key & Difficult Points**: Analysis of what students might find hard.
+    3. **Grammar Analysis**: For EACH grammar point used:
+       - Provide the specific Sentence Structure/Format (句型格式).
+       - Categorize and explain usage situations (应用情况).
+       - Provide concrete Example Sentences (句例).
+    4. **Simulation**: 
+       - First provide a Context/Synopsis (内容梗概) to clarify the dialogue's purpose.
+       - Then provide the Dialogue script.
+    5. **Steps & Props**: Detailed and practical.
+    
+    Ensure the tone is professional, encouraging, and culturally rich.
+  `;
 
   try {
     const response = await ai.models.generateContent({
@@ -101,7 +144,7 @@ export const generateActivityImage = async (imageDescription: string): Promise<s
   const ai = getGenAI();
   
   const enhancedPrompt = `
-    A photorealistic, high-quality image of a Chinese language classroom setting.
+    A photorealistic, high-quality image of a Chinese language classroom setting or scenario.
     Style: Realistic, warm lighting, educational context.
     Scene description: ${imageDescription}
   `;
@@ -325,6 +368,73 @@ export const generateExercises = async (activity: GeneratedActivity, config: Exe
     return JSON.parse(text) as ExerciseSchema;
   } catch (error) {
     console.error("Error generating exercises:", error);
+    throw error;
+  }
+};
+
+// --- BATCH IMAGE PROMPTS GENERATION ---
+
+const batchPromptsSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    scenarios: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          description: { type: Type.STRING, description: "Detailed visual description for image generation" },
+          dialogue: { type: Type.STRING, description: "A short Q&A practice dialogue" }
+        },
+        required: ["description", "dialogue"]
+      }
+    }
+  },
+  required: ["scenarios"]
+};
+
+export const generateImageBatchPrompts = async (activity: GeneratedActivity, config: ImageBatchConfig): Promise<{ description: string, dialogue: string }[]> => {
+  const model = "gemini-2.5-flash";
+  const ai = getGenAI();
+
+  const prompt = `
+    You are a creative teaching material designer.
+    
+    Context:
+    Teaching Theme: ${activity.theme}
+    Proficiency Level: ${activity.level}
+    
+    Task:
+    Create ${config.count} distinct scenarios to practice the following teaching focus:
+    "${config.focusPoint}"
+    
+    For each scenario, provide:
+    1. A detailed visual description (in English) suitable for generating a clear, photorealistic image.
+    2. A short dialogue (in Chinese) that teachers and students would use with this image to practice the focus point.
+    
+    Example input: Focus point "Why/Because (为什么/因为)", Count 2
+    Example output item 1: 
+      Description: "A boy sitting on a bench holding his knee and crying, there is a fallen bicycle next to him." 
+      Dialogue: "A: 他为什么哭？ B: 因为他从自行车上摔下来了。"
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: batchPromptsSchema,
+        systemInstruction: "Generate distinct practice scenarios.",
+      },
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No text response for Image Batch Prompts.");
+
+    const res = JSON.parse(text) as { scenarios: { description: string, dialogue: string }[] };
+    return res.scenarios;
+  } catch (error) {
+    console.error("Error generating image prompts:", error);
     throw error;
   }
 };

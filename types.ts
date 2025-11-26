@@ -15,6 +15,13 @@ export interface UserInput {
   requirements?: string; // New: Specific requirements for generation
 }
 
+export interface GrammarPoint {
+  point: string;
+  structure: string;
+  usage: string;
+  examples: string[];
+}
+
 export interface GeneratedActivity {
   id?: string;
   collectionId?: string; // Links to a Collection
@@ -23,8 +30,16 @@ export interface GeneratedActivity {
   level?: string;
   title: string;
   rationale: string;
+  
+  // New Educational Fields
+  teachingGoals: string[];
+  keyPoints: string[]; // Teaching heavy/difficult points (重难点)
+  grammarAnalysis: GrammarPoint[];
+  
   props: string[];
   steps: string[];
+  
+  simulationContext: string; // Synopsis of dialogue
   simulation: string;
   imagePromptDescription: string;
   imageUrl?: string;
@@ -48,6 +63,7 @@ export interface ActivityCardProps {
   onGenerateExercises?: (activity: GeneratedActivity) => void;
   collections?: Collection[];
   onMoveToCollection?: (activityId: string, collectionId: string) => void;
+  onGenerateImageBatch?: (activity: GeneratedActivity) => void;
 }
 
 // PPT Related Types
@@ -95,4 +111,18 @@ export interface ExerciseItem {
 export interface ExerciseSchema {
   title: string;
   exercises: ExerciseItem[];
+}
+
+// Image Batch Types
+export interface ImageBatchConfig {
+  focusPoint: string; // The specific grammar or vocabulary point to practice
+  count: number;
+}
+
+export interface ImageGenerationItem {
+  id: string;
+  description: string; // The prompt used for image generation
+  dialogue: string; // The practice dialogue associated with the scene
+  imageUrl?: string;
+  status: 'PENDING' | 'GENERATING' | 'COMPLETED' | 'FAILED';
 }

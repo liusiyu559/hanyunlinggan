@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ActivityCardProps, GeneratedActivity } from '../types';
-import { LatticeBorder, PlumFlower, BrushIcon, SealIcon, CheckIcon, CloseIcon, TrashIcon, PPTIcon, FolderIcon, ExamIcon } from './Icons';
+import { LatticeBorder, PlumFlower, BrushIcon, SealIcon, CheckIcon, CloseIcon, TrashIcon, PPTIcon, FolderIcon, ExamIcon, TargetIcon, BookIcon, PhotoIcon } from './Icons';
 
 const ResultCard: React.FC<ActivityCardProps> = ({ 
   activity, 
@@ -13,7 +13,8 @@ const ResultCard: React.FC<ActivityCardProps> = ({
   onGeneratePPT,
   onGenerateExercises,
   collections = [],
-  onMoveToCollection
+  onMoveToCollection,
+  onGenerateImageBatch
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedActivity, setEditedActivity] = useState<GeneratedActivity>(activity);
@@ -29,11 +30,11 @@ const ResultCard: React.FC<ActivityCardProps> = ({
     setEditedActivity(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleArrayChange = (name: 'props' | 'steps', value: string) => {
+  const handleArrayChange = (name: 'props' | 'steps' | 'teachingGoals' | 'keyPoints', value: string) => {
     const arrayValue = value.split('\n').filter(line => line.trim() !== '');
     setEditedActivity(prev => ({ ...prev, [name]: arrayValue }));
   };
-
+  
   const saveChanges = () => {
     if (onUpdate) {
       onUpdate(editedActivity);
@@ -47,7 +48,6 @@ const ResultCard: React.FC<ActivityCardProps> = ({
   };
 
   const triggerSaveToLibrary = () => {
-    // If currently editing, save changes first, then save to library
     const activityToSave = isEditing ? editedActivity : activity;
     if (onSave) {
       onSave(activityToSave);
@@ -114,6 +114,11 @@ const ResultCard: React.FC<ActivityCardProps> = ({
                   <PPTIcon className="w-5 h-5" />
                 </button>
               )}
+              {onGenerateImageBatch && (
+                <button onClick={() => onGenerateImageBatch(activity)} className="text-[#d4c5a9] hover:text-white transition-colors" title="Batch Generate Images">
+                  <PhotoIcon className="w-5 h-5" />
+                </button>
+              )}
               {onDelete && (
                 <button onClick={() => onDelete(activity.id!)} className="text-[#d4c5a9] hover:text-red-400 transition-colors" title="Delete">
                   <TrashIcon className="w-5 h-5" />
@@ -128,7 +133,7 @@ const ResultCard: React.FC<ActivityCardProps> = ({
       <div className="p-8 md:p-12 relative">
         <LatticeBorder />
 
-        {/* Collection Selector (Only visible in Library mode) */}
+        {/* Collection Selector */}
         {isSaved && onMoveToCollection && (
            <div className="relative z-10 mb-6 flex justify-end">
               <div className="flex items-center space-x-2 bg-antique-paper-dark/50 px-3 py-1 rounded-full border border-wood-border/20">
@@ -165,6 +170,99 @@ const ResultCard: React.FC<ActivityCardProps> = ({
               {activity.rationale}
             </p>
           )}
+        </div>
+
+        {/* Goals & Key Points Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 relative z-10">
+            {/* Teaching Goals */}
+            <div className="bg-[#f5efe4] p-5 rounded border border-wood-border/20 shadow-sm">
+                <h3 className="flex items-center font-bold text-wood-border mb-3">
+                    <TargetIcon className="w-5 h-5 mr-2 text-cinnabar" />
+                    教学目标 (Teaching Goals)
+                </h3>
+                {isEditing ? (
+                    <textarea
+                        value={editedActivity.teachingGoals?.join('\n') || ''}
+                        onChange={(e) => handleArrayChange('teachingGoals', e.target.value)}
+                        placeholder="每行一个目标 (One goal per line)"
+                        className={`${textareaClass} h-32`}
+                    />
+                ) : (
+                    <ul className="space-y-2 text-sm text-gray-700">
+                        {activity.teachingGoals?.map((goal, idx) => (
+                            <li key={idx} className="flex items-start">
+                                <span className="text-cinnabar mr-2 font-bold">🎯</span>
+                                <span>{goal}</span>
+                            </li>
+                        )) || <li className="text-gray-400 italic">暂无目标 (No goals provided)</li>}
+                    </ul>
+                )}
+            </div>
+
+            {/* Key Points */}
+            <div className="bg-[#f5efe4] p-5 rounded border border-wood-border/20 shadow-sm">
+                <h3 className="flex items-center font-bold text-wood-border mb-3">
+                    <SealIcon className="w-5 h-5 mr-2 text-earth-brown" />
+                    重难点分析 (Key Points)
+                </h3>
+                {isEditing ? (
+                    <textarea
+                        value={editedActivity.keyPoints?.join('\n') || ''}
+                        onChange={(e) => handleArrayChange('keyPoints', e.target.value)}
+                        placeholder="每行一个要点 (One point per line)"
+                        className={`${textareaClass} h-32`}
+                    />
+                ) : (
+                    <ul className="space-y-2 text-sm text-gray-700">
+                        {activity.keyPoints?.map((point, idx) => (
+                            <li key={idx} className="flex items-start">
+                                <span className="text-earth-brown mr-2 font-bold">⚡</span>
+                                <span>{point}</span>
+                            </li>
+                        )) || <li className="text-gray-400 italic">暂无重点 (No key points provided)</li>}
+                    </ul>
+                )}
+            </div>
+        </div>
+
+        {/* Grammar Analysis Section */}
+        <div className="mb-8 relative z-10">
+            <h3 className="flex items-center text-lg font-bold text-wood-border border-b border-wood-border/30 pb-2 mb-4">
+                <BookIcon className="w-5 h-5 mr-2 text-bamboo-green" />
+                语法详解 (Grammar Analysis)
+            </h3>
+            
+            <div className="grid grid-cols-1 gap-4">
+                {activity.grammarAnalysis?.map((gram, idx) => (
+                    <div key={idx} className="bg-white/60 p-5 rounded border-l-4 border-bamboo-green shadow-sm hover:shadow-md transition-shadow">
+                         <div className="flex justify-between items-start mb-2">
+                             <h4 className="font-calligraphy text-xl text-ink-black">{gram.point}</h4>
+                             <span className="text-xs bg-bamboo-green/10 text-bamboo-green px-2 py-1 rounded">Grammar Point {idx + 1}</span>
+                         </div>
+                         
+                         <div className="mb-2">
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Structure (格式)</span>
+                            <div className="font-serif text-lg text-cinnabar bg-cinnabar/5 p-2 rounded inline-block">
+                                {gram.structure}
+                            </div>
+                         </div>
+
+                         <div className="mb-3">
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Usage (应用)</span>
+                            <p className="text-sm text-gray-700">{gram.usage}</p>
+                         </div>
+
+                         <div>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Examples (句例)</span>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                {gram.examples.map((ex, i) => (
+                                    <li key={i}>{ex}</li>
+                                ))}
+                            </ul>
+                         </div>
+                    </div>
+                )) || <p className="text-gray-400 italic text-center py-4">暂无语法解析 (No grammar analysis)</p>}
+            </div>
         </div>
 
         {/* Props & Steps Grid */}
@@ -227,16 +325,41 @@ const ResultCard: React.FC<ActivityCardProps> = ({
             </h3>
           
           <div className="flex flex-col md:flex-row gap-6">
-            <div className={`flex-1 bg-white/50 p-6 rounded border-l-4 border-jade-green italic text-gray-700 whitespace-pre-wrap leading-loose shadow-inner ${isEditing ? 'p-0 bg-transparent border-0' : ''}`}>
+            <div className={`flex-1 bg-white/50 p-6 rounded border-l-4 border-jade-green shadow-inner ${isEditing ? 'p-0 bg-transparent border-0' : ''}`}>
                {isEditing ? (
-                <textarea
-                  name="simulation"
-                  value={editedActivity.simulation}
-                  onChange={handleTextChange}
-                  className={`${textareaClass} h-full min-h-[300px]`}
-                />
+                <>
+                  <label className="text-xs text-gray-500 font-bold block mb-1">Context (梗概)</label>
+                  <textarea
+                    name="simulationContext"
+                    value={editedActivity.simulationContext}
+                    onChange={handleTextChange}
+                    className={`${textareaClass} h-24 mb-4`}
+                    placeholder="Dialogue Synopsis"
+                  />
+                  <label className="text-xs text-gray-500 font-bold block mb-1">Dialogue (对话)</label>
+                  <textarea
+                    name="simulation"
+                    value={editedActivity.simulation}
+                    onChange={handleTextChange}
+                    className={`${textareaClass} h-[300px]`}
+                    placeholder="The Dialogue Script"
+                  />
+                </>
                ) : (
-                 activity.simulation
+                 <>
+                    {/* Context Box */}
+                    {activity.simulationContext && (
+                        <div className="mb-4 p-3 bg-jade-green/10 rounded text-sm text-jade-green border border-jade-green/20">
+                            <span className="font-bold mr-2">📖 情景梗概:</span>
+                            {activity.simulationContext}
+                        </div>
+                    )}
+                    
+                    {/* Dialogue Text */}
+                    <div className="italic text-gray-700 whitespace-pre-wrap leading-loose">
+                        {activity.simulation}
+                    </div>
+                 </>
                )}
             </div>
             

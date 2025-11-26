@@ -6,6 +6,7 @@ import ResultCard from './components/ResultCard';
 import Library from './components/Library';
 import PPTModal from './components/PPTModal';
 import ExerciseModal from './components/ExerciseModal';
+import ImageBatchModal from './components/ImageBatchModal';
 import { generateActivityPlan, generateActivityImage, generatePPTSchema, generateExercises } from './services/geminiService';
 import { createAndDownloadPPT } from './services/pptExportService';
 import { createAndDownloadDoc } from './services/docExportService';
@@ -35,6 +36,10 @@ const App: React.FC = () => {
   const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
   const [activeActivityForEx, setActiveActivityForEx] = useState<GeneratedActivity | null>(null);
   const [generatingEx, setGeneratingEx] = useState(false);
+
+  // Image Batch Generation State
+  const [imgBatchModalOpen, setImgBatchModalOpen] = useState(false);
+  const [activeActivityForImgBatch, setActiveActivityForImgBatch] = useState<GeneratedActivity | null>(null);
 
   // Initialization Check
   useEffect(() => {
@@ -227,6 +232,12 @@ const App: React.FC = () => {
     }
   };
 
+  // --- Image Batch Logic ---
+  const openImgBatchModal = (activity: GeneratedActivity) => {
+    setActiveActivityForImgBatch(activity);
+    setImgBatchModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-antique-paper bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')] text-ink-black flex flex-col font-serif">
       {/* Header */}
@@ -360,6 +371,7 @@ const App: React.FC = () => {
                      isSaved={savedActivities.some(a => a.id === result.id)}
                      onGeneratePPT={openPPTModal}
                      onGenerateExercises={openExerciseModal}
+                     onGenerateImageBatch={openImgBatchModal}
                      collections={collections}
                      onMoveToCollection={handleMoveToCollection}
                    />
@@ -391,6 +403,12 @@ const App: React.FC = () => {
           isOpen={exerciseModalOpen}
           onClose={() => setExerciseModalOpen(false)}
           onGenerate={handleGenerateExercises}
+        />
+        
+        <ImageBatchModal
+           activity={activeActivityForImgBatch}
+           isOpen={imgBatchModalOpen}
+           onClose={() => setImgBatchModalOpen(false)}
         />
 
       </main>
