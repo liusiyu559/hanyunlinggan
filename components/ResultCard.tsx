@@ -64,7 +64,6 @@ const ResultCard: React.FC<ActivityCardProps> = ({
     }
   };
 
-  const inputClass = "w-full bg-transparent border-b border-wood-border/50 focus:border-cinnabar px-1 py-1 outline-none font-serif text-ink-black transition-colors bg-white/40";
   const textareaClass = "w-full bg-transparent border border-wood-border/30 rounded p-2 focus:border-cinnabar outline-none font-serif text-ink-black transition-colors bg-white/40 leading-relaxed";
 
   return (

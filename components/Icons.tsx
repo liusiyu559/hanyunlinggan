@@ -1,5 +1,4 @@
 
-import React from 'react';
 
 export const KnotIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>

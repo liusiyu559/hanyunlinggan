@@ -1,6 +1,6 @@
 
 import { ExerciseSchema, ExerciseType, ExerciseConfig } from "../types";
-import { pinyin } from 'pinyin-pro';
+import { html } from 'pinyin-pro';
 
 export const createAndDownloadDoc = (schema: ExerciseSchema, config: ExerciseConfig, filename: string) => {
   // Helper to map type to Chinese label
@@ -19,10 +19,9 @@ export const createAndDownloadDoc = (schema: ExerciseSchema, config: ExerciseCon
   const formatText = (text: string) => {
     if (!config.includePinyin || !text) return text;
     try {
-        // Use pinyin-pro to generate HTML Ruby tags
-        // type: 'html' generates <ruby>汉<rt>hàn</rt></ruby>
-        // nonZh: 'consecutive' ensures Latin text isn't broken up weirdly
-        return pinyin(text, { type: 'html', toneType: 'symbol', nonZh: 'consecutive' });
+        // Use pinyin-pro html method directly
+        // This generates <ruby>汉<rt>hàn</rt></ruby>
+        return html(text, { toneType: 'symbol', nonZh: 'consecutive' });
     } catch (e) {
         console.error("Pinyin generation error:", e);
         return text;

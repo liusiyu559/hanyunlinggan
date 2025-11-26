@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GeneratedActivity, Collection } from '../types';
 import ResultCard from './ResultCard';
-import { KnotIcon, PlumFlower, TrashIcon, BrushIcon, FolderIcon, PlusIcon, ArrowRightIcon } from './Icons';
+import { KnotIcon, PlumFlower, TrashIcon, BrushIcon, FolderIcon, PlusIcon } from './Icons';
 
 interface LibraryProps {
   activities: GeneratedActivity[];
@@ -9,6 +9,7 @@ interface LibraryProps {
   onDeleteActivity: (id: string) => void;
   onUpdateActivity: (activity: GeneratedActivity) => void;
   onGeneratePPT: (activity: GeneratedActivity) => void;
+  onGenerateExercises: (activity: GeneratedActivity) => void;
   onCreateCollection: (name: string, description: string) => void;
   onMoveToCollection: (activityId: string, collectionId: string) => void;
 }
@@ -19,6 +20,7 @@ const Library: React.FC<LibraryProps> = ({
   onDeleteActivity, 
   onUpdateActivity,
   onGeneratePPT,
+  onGenerateExercises,
   onCreateCollection,
   onMoveToCollection
 }) => {
@@ -69,6 +71,7 @@ const Library: React.FC<LibraryProps> = ({
           }}
           onUpdate={onUpdateActivity}
           onGeneratePPT={onGeneratePPT}
+          onGenerateExercises={onGenerateExercises}
           isSaved={true}
           collections={collections}
           onMoveToCollection={onMoveToCollection}

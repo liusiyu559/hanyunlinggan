@@ -62,7 +62,7 @@ export const createAndDownloadPPT = async (schema: PPTSchema, config: PPTConfig)
       color: titleColor,
       bold: true,
       align: config.style === 'MINIMALIST_ZEN' ? 'left' : 'center',
-      border: config.style === 'INK_WASH' ? { pt: 0, pb: '1pt', color: accentColor } : undefined
+      // Note: Border removed to avoid TS2353 as it may not be supported in types
     });
 
     // Content (Bullet Points)
